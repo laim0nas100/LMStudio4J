@@ -4,13 +4,19 @@
  */
 package com.github.laim0nas100.lmstudio4j.demo;
 
-import com.github.laim0nas100.lmstudio4j.mcp.AttachmentMcpServer;
+import com.github.laim0nas100.lmstudio4j.mcp.GenericMcpServer;
+import com.github.laim0nas100.lmstudio4j.mcp.McpServletBind;
+import com.github.laim0nas100.lmstudio4j.mcp.ToolDefinition;
+import com.github.laim0nas100.uncheckedutils.SafeOpt;
 import com.github.mizosoft.methanol.Methanol;
+import io.modelcontextprotocol.spec.McpSchema;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 
@@ -19,6 +25,49 @@ import org.eclipse.jetty.server.ServerConnector;
  * @author Lemmin
  */
 public class SimulatedMCPCall {
+    
+    private static McpSchema.Tool createReadAttachmentTool() {
+
+        /*
+         * JSON Schema describing:
+         *
+         * {
+         *     "file_id": "..."
+         * }
+         *
+         * The SDK validates incoming tool arguments against
+         * this schema by default.
+         */
+        Map<String, Object> schema = Map.of(
+                "type", "object",
+                "properties", Map.of(
+                        "file_id", Map.of(
+                                "type", "string",
+                                "description",
+                                "ID of the file attached to the current chat session."
+                        )
+                ),
+                "required", List.of("file_id")
+        );
+
+        return McpSchema.Tool.builder(
+                "read_attachment",
+                schema
+        )
+                .description(
+                        """
+                        Reads the contents of a file that was attached \
+                        by the user to the current chat session.
+
+                        Use this tool when you need to inspect the \
+                        contents of an attached file.
+
+                        The file_id is supplied by the application in \
+                        the conversation context.
+                        """
+                )
+                .build();
+    }
 
     public static void main(String[] args) throws IOException, Exception {
         System.out.println("Hello World!");
@@ -33,7 +82,12 @@ public class SimulatedMCPCall {
 
         jetty.addConnector(connector);
 
-        AttachmentMcpServer attachmentMcpServer = new AttachmentMcpServer(jetty);
+//        AttachmentMcpServer attachmentMcpServer = new AttachmentMcpServer(jetty);
+        GenericMcpServer build = new GenericMcpServer.Builder().withTool(createReadAttachmentTool(), ToolDefinition.simpleText(request ->{
+            return SafeOpt.of("FILE TEMPLATE");
+        })).build();
+        
+        build.bind(McpServletBind.jetty(jetty));
         jetty.start();
 
         String sessionID = callMCP();

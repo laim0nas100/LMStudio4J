@@ -10,6 +10,7 @@ import io.modelcontextprotocol.spec.McpSchema.Tool;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
@@ -25,7 +26,13 @@ public class GenericMcpServer {
         protected String serverName = "Generic MCP server";
         protected String version = "1.0.0";
         protected String mcpEndpoint = "/mcp";
-        protected McpSchema.ServerCapabilities capabilities;
+
+        protected McpSchema.ServerCapabilities capabilities; // can be overriden
+        
+        protected boolean logging = false;
+        protected Map<String,Object> experimental;
+        
+
         protected List<ToolDefinition> tools = new ArrayList<>();
         protected List<CompletionDefinition> completions = new ArrayList<>();
         protected List<PromptDefinition> prompts = new ArrayList<>();
@@ -38,6 +45,16 @@ public class GenericMcpServer {
 
         public Builder withSync(boolean sync) {
             this.sync = sync;
+            return this;
+        }
+        
+        public Builder withLoggingCap(boolean logging){
+            this.logging = logging;
+            return this;
+        }
+        
+        public Builder withExperimentalCap(Map<String,Object> experimental){
+            this.experimental = experimental;
             return this;
         }
 
@@ -91,6 +108,29 @@ public class GenericMcpServer {
             return this;
         }
 
+        protected McpSchema.ServerCapabilities autoCapabilities(){
+            
+            McpSchema.ServerCapabilities.Builder capBuild = McpSchema.ServerCapabilities.builder();
+            if(!resources.isEmpty() || !resourceTemplates.isEmpty()){
+                capBuild.resources(true, true);
+            }
+            if(!tools.isEmpty()){
+                capBuild.tools(true);
+            }
+            if(!prompts.isEmpty()){
+                capBuild.prompts(true);
+            }
+            if(logging){
+                capBuild.logging();
+            }
+            if(experimental != null){
+                capBuild.experimental(experimental);
+            }
+            
+            return capBuild.build();
+            
+        }
+
         public Builder withCapabilities(McpSchema.ServerCapabilities capabilities) {
             this.capabilities = capabilities;
             return this;
@@ -99,6 +139,10 @@ public class GenericMcpServer {
         public Builder withInstructions(String instructions) {
             this.instructions = instructions;
             return this;
+        }
+
+        public GenericMcpServer build() {
+            return new GenericMcpServer(this);
         }
 
     }
@@ -122,7 +166,7 @@ public class GenericMcpServer {
                 builder.requestTimeout,
                 builder.mcpEndpoint,
                 builder.instructions,
-                builder.capabilities,
+                builder.capabilities == null ? builder.autoCapabilities() : builder.capabilities,
                 builder.tools,
                 builder.completions,
                 builder.prompts,
