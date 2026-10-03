@@ -1,6 +1,8 @@
 package com.github.laim0nas100.lmstudio4j.mcp;
 
 import io.modelcontextprotocol.server.McpAsyncServerExchange;
+import io.modelcontextprotocol.server.McpServerFeatures.AsyncResourceSpecification;
+import io.modelcontextprotocol.server.McpServerFeatures.SyncResourceSpecification;
 import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.spec.McpSchema;
 import java.util.Objects;
@@ -24,5 +26,13 @@ public record ResourceDefinition(McpSchema.Resource resource, BiFunction<Object,
     
     public BiFunction<McpAsyncServerExchange, McpSchema.ReadResourceRequest, Mono<McpSchema.ReadResourceResult>> asyncHandler() {
         return (exchange, request) -> Mono.fromCallable(() -> functor().apply(exchange, request));
+    }
+    
+    public SyncResourceSpecification toSyncSpec(){
+        return new SyncResourceSpecification(resource(), syncHandler());
+    }
+    
+    public AsyncResourceSpecification toAsyncSpec(){
+        return new AsyncResourceSpecification(resource(), asyncHandler());
     }
 }

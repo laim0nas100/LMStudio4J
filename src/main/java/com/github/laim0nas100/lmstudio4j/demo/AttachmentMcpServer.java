@@ -1,4 +1,4 @@
-package com.github.laim0nas100.lmstudio4j.mcp;
+package com.github.laim0nas100.lmstudio4j.demo;
 
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpSyncServer;

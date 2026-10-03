@@ -1,5 +1,8 @@
 package com.github.laim0nas100.lmstudio4j.mcp;
 
+import io.modelcontextprotocol.json.McpJsonDefaults;
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.schema.JsonSchemaValidator;
 import io.modelcontextprotocol.server.McpAsyncServer;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
@@ -20,7 +23,7 @@ import java.util.function.BiFunction;
  */
 public class GenericMcpServer {
 
-    public static class Builder {
+    public static class Builder<B extends Builder> {
 
         protected boolean sync = true;
         protected String serverName = "Generic MCP server";
@@ -28,10 +31,10 @@ public class GenericMcpServer {
         protected String mcpEndpoint = "/mcp";
 
         protected McpSchema.ServerCapabilities capabilities; // can be overriden
-        
+        protected McpSchema.ServerCapabilities.Builder autoCapabilities = new McpSchema.ServerCapabilities.Builder();
+
         protected boolean logging = false;
-        protected Map<String,Object> experimental;
-        
+        protected Map<String, Object> experimental;
 
         protected List<ToolDefinition> tools = new ArrayList<>();
         protected List<CompletionDefinition> completions = new ArrayList<>();
@@ -39,106 +42,122 @@ public class GenericMcpServer {
         protected List<ResourceTemplateDefinition> resourceTemplates = new ArrayList<>();
         protected List<ResourceDefinition> resources = new ArrayList<>();
 
+        protected McpJsonMapper jsonMapper = McpJsonDefaults.getMapper();
+        protected JsonSchemaValidator schemaValidator = McpJsonDefaults.getSchemaValidator();
+
         protected String instructions;
         protected boolean immediateExecution = false;
         protected Duration requestTimeout;
 
-        public Builder withSync(boolean sync) {
+        public B me() {
+            return (B) this;
+        }
+
+        public B withJsonMapper(McpJsonMapper jsonMapper) {
+            this.jsonMapper = jsonMapper;
+            return me();
+        }
+
+        public B withSchemaValidator(JsonSchemaValidator validator) {
+            this.schemaValidator = validator;
+            return me();
+        }
+
+        public B withSync(boolean sync) {
             this.sync = sync;
-            return this;
+            return me();
         }
-        
-        public Builder withLoggingCap(boolean logging){
+
+        public B withLoggingCap(boolean logging) {
             this.logging = logging;
-            return this;
+            return me();
         }
-        
-        public Builder withExperimentalCap(Map<String,Object> experimental){
+
+        public B withExperimentalCap(Map<String, Object> experimental) {
             this.experimental = experimental;
-            return this;
+            return me();
         }
 
-        public Builder withImmediateExecution(boolean immediateExecution) {
+        public B withImmediateExecution(boolean immediateExecution) {
             this.immediateExecution = immediateExecution;
-            return this;
+            return me();
         }
 
-        public Builder withRequestTimeout(Duration requestTimeout) {
+        public B withRequestTimeout(Duration requestTimeout) {
             this.requestTimeout = requestTimeout;
-            return this;
+            return me();
         }
 
-        public Builder withServerName(String name) {
+        public B withServerName(String name) {
             this.serverName = Objects.requireNonNull(name);
-            return this;
+            return me();
         }
 
-        public Builder withServerVersion(String ver) {
+        public B withServerVersion(String ver) {
             this.version = Objects.requireNonNull(ver);
-            return this;
+            return me();
         }
 
-        public Builder withMcpEndpoint(String mcpEndpoint) {
+        public B withMcpEndpoint(String mcpEndpoint) {
             this.mcpEndpoint = Objects.requireNonNull(mcpEndpoint);
-            return this;
+            return me();
         }
 
-        public Builder withTool(Tool tool, BiFunction<Object, McpSchema.CallToolRequest, McpSchema.CallToolResult> functor) {
+        public B withTool(Tool tool, BiFunction<Object, McpSchema.CallToolRequest, McpSchema.CallToolResult> functor) {
             this.tools.add(new ToolDefinition(tool, functor));
-            return this;
+            return me();
         }
 
-        public Builder withCompletion(McpSchema.CompleteReference reference, BiFunction<Object, McpSchema.CompleteRequest, McpSchema.CompleteResult> functor) {
+        public B withCompletion(McpSchema.CompleteReference reference, BiFunction<Object, McpSchema.CompleteRequest, McpSchema.CompleteResult> functor) {
             this.completions.add(new CompletionDefinition(reference, functor));
-            return this;
+            return me();
         }
 
-        public Builder withPrompt(McpSchema.Prompt prompt, BiFunction<Object, McpSchema.GetPromptRequest, McpSchema.GetPromptResult> functor) {
+        public B withPrompt(McpSchema.Prompt prompt, BiFunction<Object, McpSchema.GetPromptRequest, McpSchema.GetPromptResult> functor) {
             this.prompts.add(new PromptDefinition(prompt, functor));
-            return this;
+            return me();
         }
 
-        public Builder withResourceTemplate(McpSchema.ResourceTemplate template, BiFunction<Object, McpSchema.ReadResourceRequest, McpSchema.ReadResourceResult> functor) {
+        public B withResourceTemplate(McpSchema.ResourceTemplate template, BiFunction<Object, McpSchema.ReadResourceRequest, McpSchema.ReadResourceResult> functor) {
             this.resourceTemplates.add(new ResourceTemplateDefinition(template, functor));
-            return this;
+            return me();
         }
 
-        public Builder withResource(McpSchema.Resource resource, BiFunction<Object, McpSchema.ReadResourceRequest, McpSchema.ReadResourceResult> functor) {
+        public B withResource(McpSchema.Resource resource, BiFunction<Object, McpSchema.ReadResourceRequest, McpSchema.ReadResourceResult> functor) {
             this.resources.add(new ResourceDefinition(resource, functor));
-            return this;
+            return me();
         }
 
-        protected McpSchema.ServerCapabilities autoCapabilities(){
-            
-            McpSchema.ServerCapabilities.Builder capBuild = McpSchema.ServerCapabilities.builder();
-            if(!resources.isEmpty() || !resourceTemplates.isEmpty()){
-                capBuild.resources(true, true);
+        protected McpSchema.ServerCapabilities.Builder setAutoCapabilities() {
+
+            if (!resources.isEmpty() || !resourceTemplates.isEmpty()) {
+                autoCapabilities.resources(true, true);
             }
-            if(!tools.isEmpty()){
-                capBuild.tools(true);
+            if (!tools.isEmpty()) {
+                autoCapabilities.tools(true);
             }
-            if(!prompts.isEmpty()){
-                capBuild.prompts(true);
+            if (!prompts.isEmpty()) {
+                autoCapabilities.prompts(true);
             }
-            if(logging){
-                capBuild.logging();
+            if (logging) {
+                autoCapabilities.logging();
             }
-            if(experimental != null){
-                capBuild.experimental(experimental);
+            if (experimental != null) {
+                autoCapabilities.experimental(experimental);
             }
-            
-            return capBuild.build();
-            
+
+            return autoCapabilities;
+
         }
 
         public Builder withCapabilities(McpSchema.ServerCapabilities capabilities) {
             this.capabilities = capabilities;
-            return this;
+            return me();
         }
 
         public Builder withInstructions(String instructions) {
             this.instructions = instructions;
-            return this;
+            return me();
         }
 
         public GenericMcpServer build() {
@@ -156,6 +175,9 @@ public class GenericMcpServer {
     protected final String serverName;
     protected McpServletBind bind;
 
+    protected JsonSchemaValidator schemaValidator;
+    protected McpJsonMapper jsonMapper;
+
     public GenericMcpServer(Builder builder) {
         Objects.requireNonNull(builder);
         this(
@@ -166,7 +188,9 @@ public class GenericMcpServer {
                 builder.requestTimeout,
                 builder.mcpEndpoint,
                 builder.instructions,
-                builder.capabilities == null ? builder.autoCapabilities() : builder.capabilities,
+                builder.jsonMapper,
+                builder.schemaValidator,
+                builder.capabilities == null ? builder.setAutoCapabilities().build() : builder.capabilities,
                 builder.tools,
                 builder.completions,
                 builder.prompts,
@@ -183,6 +207,8 @@ public class GenericMcpServer {
             Duration requestTimeout,
             String mcpEndpoint,
             String instructions,
+            McpJsonMapper jsonMapper,
+            JsonSchemaValidator jsonSchemaValidator,
             McpSchema.ServerCapabilities capabilities,
             List<ToolDefinition> toolDefinitions,
             List<CompletionDefinition> completions,
@@ -194,6 +220,11 @@ public class GenericMcpServer {
         this.sync = sync;
         this.serverName = Objects.requireNonNull(serverName);
         this.serverVersion = Objects.requireNonNull(serverVersion);
+        this.jsonMapper = Objects.requireNonNullElseGet(jsonMapper, McpJsonDefaults::getMapper);
+        this.schemaValidator = Objects.requireNonNullElseGet(jsonSchemaValidator, McpJsonDefaults::getSchemaValidator);
+
+        this.jsonMapper = jsonMapper;
+        this.schemaValidator = jsonSchemaValidator;
 
         transport
                 = HttpServletStreamableServerTransportProvider.builder()
@@ -213,6 +244,8 @@ public class GenericMcpServer {
             if (instructions != null) {
                 builder.instructions(instructions);
             }
+            builder.jsonMapper(this.jsonMapper);
+            builder.jsonSchemaValidator(this.schemaValidator);
 
             if (capabilities != null) {
                 builder.capabilities(capabilities);
@@ -269,6 +302,8 @@ public class GenericMcpServer {
             if (instructions != null) {
                 builder.instructions(instructions);
             }
+            builder.jsonMapper(this.jsonMapper);
+            builder.jsonSchemaValidator(this.schemaValidator);
 
             if (capabilities != null) {
                 builder.capabilities(capabilities);
@@ -313,7 +348,27 @@ public class GenericMcpServer {
             this.mcpAsync = builder.build();
             this.mcpSync = null;
         }
-        
+
+    }
+
+    public GenericMcpServer addResource(ResourceDefinition resourceDef) {
+        Objects.requireNonNull(resourceDef);
+        if (sync) {
+            mcpSync.addResource(resourceDef.toSyncSpec());
+        } else {
+            mcpAsync.addResource(resourceDef.toAsyncSpec());
+        }
+        return this;
+    }
+
+    public GenericMcpServer removeResource(String resourceUri) {
+        Objects.requireNonNull(resourceUri);
+        if (sync) {
+            mcpSync.removeResource(resourceUri);
+        } else {
+            mcpAsync.removeResource(resourceUri);
+        }
+        return this;
     }
 
     public GenericMcpServer addTool(ToolDefinition toolDef) {

@@ -13,7 +13,12 @@
         <mcp.version>2.0.0</mcp.version>
         <jetty.version>12.0.39</jetty.version>
     </properties>
-    
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -51,7 +56,7 @@
         <dependency>
             <groupId>com.github.laim0nas100</groupId>
             <artifactId>UncheckedUtils</artifactId>
-            <version>2026.06v1</version>
+            <version>2026.10v1</version>
             <type>jar</type>
         </dependency>
         <!-- Source: https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
@@ -73,19 +78,48 @@
             <version>1.15.0</version>
             <type>jar</type>
         </dependency>
+        
         <dependency>
-            <groupId>com.github.laim0nas100.commonslb</groupId>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>4.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.laim0nas100.Commons</groupId>
             <artifactId>commonslb-reflection</artifactId>
-            <version>local-jar</version>
+            <version>2026.10v1-new</version>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>com.github.laim0nas100.commonslb</groupId>
+            <groupId>com.github.laim0nas100.Commons</groupId>
             <artifactId>commonslb-log</artifactId>
-            <version>local-jar</version>
+            <version>2026.10v1-new</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.github.laim0nas100.Commons</groupId>
+            <artifactId>commonslb-io</artifactId>
+            <version>2026.10v1-new</version>
             <type>jar</type>
         </dependency>
         
+        <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>DB_FileStore</artifactId>
+            <version>2026.10v2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+            <version>3.55.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.laim0nas100</groupId>
+            <artifactId>TolerantConfig</artifactId>
+            <version>2026.07v4</version>
+            <type>jar</type>
+        </dependency>
         
     </dependencies>
 </project>
