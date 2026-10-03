@@ -1,6 +1,6 @@
 package com.github.laim0nas100.lmstudio4j.model.v1;
 
-import lt.lb.commons.clone.CloneSupport;
+import com.github.laim0nas100.commonslb.clone.CloneSupport;
 
 /**
  *

@@ -5,6 +5,7 @@
 package com.github.laim0nas100.lmstudio4j.demo;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.github.laim0nas100.commonslb.DLog;
 import com.github.laim0nas100.lmstudio4j.model.v1.*;
 import com.github.mizosoft.methanol.AdapterCodec;
 import com.github.mizosoft.methanol.MediaType;
@@ -18,7 +19,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
-import lt.lb.commons.DLog;
 
 /**
  *

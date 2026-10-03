@@ -313,7 +313,7 @@ public class GenericMcpServer {
             this.mcpAsync = builder.build();
             this.mcpSync = null;
         }
-
+        
     }
 
     public GenericMcpServer addTool(ToolDefinition toolDef) {

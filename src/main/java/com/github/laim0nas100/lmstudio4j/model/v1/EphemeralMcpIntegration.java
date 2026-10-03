@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lt.lb.commons.F;
-import lt.lb.commons.clone.Cloner;
+import com.github.laim0nas100.commonslb.F;
+import com.github.laim0nas100.commonslb.clone.Cloner;
 
 /**
  *

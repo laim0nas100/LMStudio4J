@@ -1,7 +1,7 @@
 package com.github.laim0nas100.lmstudio4j.model.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lt.lb.commons.reflect.Refl.SelfIDBean;
+import com.github.laim0nas100.commonslb.reflect.Refl.SelfIDBean;
 
 /**
  *
